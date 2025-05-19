@@ -208,6 +208,7 @@ Author: Your Name
 Email: your.email@example.com
 Project Link: https://github.com/yourusername/oauth2-demo
 
+---
 
 # 🔐 OAuth2 Demo Project
 
