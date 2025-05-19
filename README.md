@@ -1,3 +1,206 @@
+## 🔐 OAuth2 Demo Project
+This project is an OAuth2 social login demo application built with Spring Boot. It supports Google, Kakao, and Naver social login with JWT-based authentication system.
+
+### 🚀 Key Features
+- 🔑 Social Login (Google, Kakao, Naver)
+- 🎫 JWT-based Authentication (Access Token, Refresh Token)
+- 🔒 Security Configuration (CORS, CSRF)
+- 🍪 Cookie-based Token Management
+- 📝 User Terms Agreement Process
+
+### 🛠 Tech Stack
+Java 21
+Spring Boot 3.4.5
+Spring Security
+Spring OAuth2 Client
+JWT (jjwt 0.12.3)
+MySQL
+Redis
+QueryDSL
+Lombok
+
+## 🔐 OAuth2 & Security Implementation Details
+
+### OAuth2 Implementation
+1. Social Login Configuration
+Configure each social login provider (Google, Kakao, Naver) using Spring Security OAuth2 Client
+Set required scope and user-info-uri for each provider
+Handle social login user information through CustomOAuth2UserService
+2. Authentication Process
+Handle OAuth2 authentication requests through CustomAuthorizationRequestResolver
+Issue JWT tokens on authentication success via OAuth2AuthenticationSuccessHandler
+Handle authentication failures through OAuth2AuthenticationFailureHandler
+3. Token Management
+Implement JWT-based Access Token and Refresh Token
+Store and manage Refresh Tokens using Redis
+Secure token transmission through HttpOnly cookies
+
+### Security Implementation
+1. Security Configuration
+java
+@Configuration
+public class SecurityConfig {
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+        return http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
+            .sessionManagement(session -> 
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/public/**").permitAll()
+                .requestMatchers("/private/**").authenticated()
+                .anyRequest().denyAll())
+            .oauth2Login(oauth2 -> oauth2
+                .authorizationEndpoint(endpoint -> endpoint
+                    .authorizationRequestResolver(customAuthorizationRequestResolver))
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(customOAuth2UserService))
+                .successHandler(oAuth2AuthenticationSuccessHandler)
+                .failureHandler(oAuth2AuthenticationFailureHandler))
+            .build();
+    }
+}
+2. Authentication Filters
+LoginAuthFilter: JWT token validation and authentication handling
+LogoutAuthFilter: Logout processing and token removal
+3. CORS Configuration
+java
+@Bean
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedOrigins(Arrays.asList("*"));
+    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+    configuration.setAllowedHeaders(Arrays.asList("*"));
+    configuration.setAllowCredentials(true);
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/api/**", configuration);
+    return source;
+}
+4. Security Enhancements
+Stateless session management for reduced server load
+CSRF protection disabled (REST API based)
+XSS attack prevention through HttpOnly cookies
+Enhanced security through Redis-based token management
+⚙️ Environment Configuration
+Required Environment Variables
+properties
+### OAuth2 Client Credentials
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+KAKAO_CLIENT_ID=your_kakao_client_id
+KAKAO_CLIENT_SECRET=your_kakao_client_secret
+NAVER_CLIENT_ID=your_naver_client_id
+NAVER_CLIENT_SECRET=your_naver_client_secret
+
+### JWT Keys
+ACCESS_TOKEN_KEY=your_access_token_key
+REFRESH_TOKEN_KEY=your_refresh_token_key
+
+### Database
+MYSQL_URL=jdbc:mysql://localhost:3306/oauth2_demo
+MYSQL_USER_NAME=your_mysql_username
+MYSQL_PASSWORD=your_mysql_password
+
+## 🏗 Project Structure
+src/main/java/com/example/oauth2demo/
+├── auth/                 # Authentication related code
+│   ├── application/     # Authentication service logic
+│   ├── domain/         # Domain models
+│   ├── dto/            # Data transfer objects
+│   └── infrastructure/ # Infrastructure related code
+├── common/             # Common configuration and utilities
+├── terms/             # Terms related code
+└── user/              # User related code
+
+## 🔄 Authentication Process
+1. Social Login Process
+Client requests social login (/api/public/oauth2/{provider})
+Redirect to OAuth2 authentication page
+User authenticates with social login provider
+Redirect to callback URL on successful authentication
+Server obtains and processes user information
+Issue JWT tokens and store in cookies
+Redirect to main page
+2. User Registration Process
+Check for new user after successful social login
+Redirect to terms agreement page for new users
+Save user information:
+Social account information (email, social ID, provider)
+User role (ROLE_USER)
+Save terms agreement information
+Redirect to main page after registration completion
+3. Logout Process
+- Client requests logout (/api/public/logout)
+- LogoutAuthFilter processes the request
+- Delete Refresh Token from Redis
+- Delete Access Token and Refresh Token cookies:
+```
+Cookie deletedAccessCookie = cookieProvider.generateDeletedAccessTokenCookie();
+Cookie deletedRefreshCookie = cookieProvider.generateDeletedRefreshTokenCookie();
+response.addCookie(deletedAccessCookie);
+response.addCookie(deletedRefreshCookie);
+```
+- Clear SecurityContext
+- Redirect to login page
+
+4. Token Refresh Process
+When Access Token expires (30 minutes)
+Request new Access Token with Refresh Token
+Validate Refresh Token in Redis
+Issue new Access Token if valid
+Store new Access Token in cookie
+Maintain existing Refresh Token (2 days)
+
+## 🔒 Security Settings
+CORS Configuration: Allow cross-origin requests for API endpoints
+CSRF Protection: Disabled for REST API based architecture
+Session Management: Uses stateless approach
+Token Management: Uses HttpOnly cookies
+
+## 🧪 Testing
+```
+./gradlew test
+```
+
+### 🚀 How to Run
+Set environment variables
+Start MySQL and Redis servers
+Run the application:
+```
+./gradlew bootRun
+```
+### 📝 API Documentation
+Swagger UI: http://localhost:8080/api/swagger-ui/index.html
+OpenAPI Documentation: http://localhost:8080/api/api-docs
+
+### 🔑 Token Expiration Times
+Access Token: 30 minutes
+Refresh Token: 2 days
+
+### 📋 Prerequisites
+Java 21 or higher
+MySQL 8.0 or higher
+Redis 6.0 or higher
+Gradle 7.0 or higher
+
+### 🤝 Contributing
+Fork the repository
+Create your feature branch (git checkout -b feature/AmazingFeature)
+Commit your changes (git commit -m 'Add some AmazingFeature')
+Push to the branch (git push origin feature/AmazingFeature)
+Open a Pull Request
+
+### 📄 License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+### 📞 Contact
+Author: Your Name
+Email: your.email@example.com
+Project Link: https://github.com/yourusername/oauth2-demo
+
+
 # 🔐 OAuth2 Demo Project
 
 이 프로젝트는 Spring Boot를 사용한 OAuth2 소셜 로그인 데모 애플리케이션입니다. Google, Kakao, Naver 소셜 로그인을 지원하며, JWT 기반의 인증 시스템을 구현했습니다.
