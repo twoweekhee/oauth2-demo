@@ -37,7 +37,7 @@ Secure token transmission through HttpOnly cookies
 
 ### Security Implementation
 1. Security Configuration
-java
+```
 @Configuration
 public class SecurityConfig {
     @Bean
@@ -62,11 +62,12 @@ public class SecurityConfig {
             .build();
     }
 }
+```
 2. Authentication Filters
 LoginAuthFilter: JWT token validation and authentication handling
 LogoutAuthFilter: Logout processing and token removal
 3. CORS Configuration
-java
+```
 @Bean
 public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
@@ -78,32 +79,38 @@ public CorsConfigurationSource corsConfigurationSource() {
     source.registerCorsConfiguration("/api/**", configuration);
     return source;
 }
+```
 4. Security Enhancements
 Stateless session management for reduced server load
 CSRF protection disabled (REST API based)
 XSS attack prevention through HttpOnly cookies
 Enhanced security through Redis-based token management
-⚙️ Environment Configuration
+
+## ⚙️ Environment Configuration
 Required Environment Variables
 properties
 ### OAuth2 Client Credentials
+```
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 KAKAO_CLIENT_ID=your_kakao_client_id
 KAKAO_CLIENT_SECRET=your_kakao_client_secret
 NAVER_CLIENT_ID=your_naver_client_id
 NAVER_CLIENT_SECRET=your_naver_client_secret
-
+```
 ### JWT Keys
+```
 ACCESS_TOKEN_KEY=your_access_token_key
 REFRESH_TOKEN_KEY=your_refresh_token_key
-
+```
 ### Database
+```
 MYSQL_URL=jdbc:mysql://localhost:3306/oauth2_demo
 MYSQL_USER_NAME=your_mysql_username
 MYSQL_PASSWORD=your_mysql_password
-
+```
 ## 🏗 Project Structure
+```
 src/main/java/com/example/oauth2demo/
 ├── auth/                 # Authentication related code
 │   ├── application/     # Authentication service logic
@@ -113,6 +120,7 @@ src/main/java/com/example/oauth2demo/
 ├── common/             # Common configuration and utilities
 ├── terms/             # Terms related code
 └── user/              # User related code
+```
 
 ## 🔄 Authentication Process
 1. Social Login Process
